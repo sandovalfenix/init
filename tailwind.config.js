@@ -2,10 +2,19 @@ module.exports = {
   purge: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   darkMode: false, // or 'media' or 'class'
   theme: {
-    extend: {},
+    backgroundColor: theme => ({
+      ...theme('colors'),
+      'primary': '#fa8816',
+      'secondary': '#111827',
+      'danger': '#ef4444',
+    })
   },
   variants: {
-    extend: {},
+    extend: {
+      backgroundColor: ['active']
+    },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
 }
