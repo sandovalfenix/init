@@ -1,33 +1,45 @@
-const basePath = 'https://firestore.googleapis.com/v1/projects/';
+const basePath =
+  "https://firestore.googleapis.com/v1/projects/control-security-f8c2c/databases/(default)/documents/";
 
 export default {
   namespaced: true,
   state: {
-    Docs: [],
     Users: [],
-    User: {},
-    file: false,
+    nextPageToken: null,
   },
   getters: {
-    Docs: state => state.Docs,
-    Users: state => state.Users,
+    Users: (state) => state.Users,
+    nextPageToken: (state) => state.nextPageToken,
   },
   mutations: {
-    setDocs(state, Docs) {
-      state.Docs = Docs;
+    setNextPageToken(state, nextPageToken) {
+      state.nextPageToken = nextPageToken;
     },
     setUsers(state, Users) {
       state.Users = Users;
     },
   },
   actions: {
-    listUsers: (async ({ commit }) => {
-      const res = await fetch(basePath + 'smartaxessqr/databases/(default)/documents/Users?pageSize=10&orderBy=createTime', {
-        method: 'get',
+    listUsers: async ({ commit }, params = null) => {
+      let collectionID = "Users";
+      let url = basePath + collectionID;
+
+      if (params) {
+        Object.entries(params).forEach((item, index) => {
+          url += item[1]
+            ? index == 0
+              ? "?" + item[0] + "=" + item[1]
+              : "&" + item[0] + "=" + item[1]
+            : "";
+        });
+      }
+
+      const res = await fetch(url, {
+        method: "get",
         headers: {
-          'content-type': 'application/json'
-        }
-      })
+          "content-type": "application/json",
+        },
+      });
 
       if (!res.ok) {
         // create error instance with HTTP status text
@@ -36,12 +48,24 @@ export default {
         throw error;
       } else {
         const json = await res.json();
-        const Docs = json.documents
-        const Users = Docs.map(doc => Object.fromEntries(Object.entries(doc.fields).map((item) => [item[0], Object.values(item[1])[0]])))
 
-        commit('setDocs', Docs)
-        commit('setUsers', Users)
+        commit(
+          "setUsers",
+          json.documents.map((doc) =>
+            Object.fromEntries(
+              Object.entries(doc.fields).map((item) => [
+                item[0],
+                Object.values(item[1])[0],
+              ])
+            )
+          )
+        );
+
+        commit(
+          "setNextPageToken",
+          json.nextPageToken ? json.nextPageToken : null
+        );
       }
-    })
-  }
-}
+    },
+  },
+};

@@ -587,12 +587,14 @@
                   >
                     <div>
                       <p class="text-sm text-gray-700">
-                        Showing
-                        <span class="font-medium">1</span>
-                        to
-                        <span class="font-medium">10</span>
-                        of
-                        <span class="font-medium">97</span>
+                        Pagina
+                        <span class="font-medium">{{
+                          pagesToken.length + 1
+                        }}</span>
+                        de
+                        <span class="font-medium">{{
+                          (pagesToken.length + 1) * 5
+                        }}</span>
                         results
                       </p>
                     </div>
@@ -609,7 +611,9 @@
                         aria-label="Pagination"
                       >
                         <a
-                          href="#"
+                          v-if="pagesToken.length"
+                          @click="previousPage"
+                          href="javascript:;"
                           class="
                             relative
                             inline-flex
@@ -625,7 +629,6 @@
                             hover:bg-gray-50
                           "
                         >
-                          <span class="sr-only">Previous</span>
                           <!-- Heroicon name: solid/chevron-left -->
                           <svg
                             class="h-5 w-5"
@@ -640,143 +643,12 @@
                               clip-rule="evenodd"
                             />
                           </svg>
+                          <span class="text-xs">Anterior</span>
                         </a>
                         <!-- Current: "z-10 bg-blue-50 border-blue-500 text-blue-600", Default: "bg-white border-gray-300 text-gray-500 hover:bg-gray-50" -->
                         <a
-                          href="#"
-                          aria-current="page"
-                          class="
-                            z-10
-                            bg-blue-50
-                            border-blue-500
-                            text-blue-600
-                            relative
-                            inline-flex
-                            items-center
-                            px-4
-                            py-2
-                            border
-                            text-sm
-                            font-medium
-                          "
-                        >
-                          1
-                        </a>
-                        <a
-                          href="#"
-                          class="
-                            bg-white
-                            border-gray-300
-                            text-gray-500
-                            hover:bg-gray-50
-                            relative
-                            inline-flex
-                            items-center
-                            px-4
-                            py-2
-                            border
-                            text-sm
-                            font-medium
-                          "
-                        >
-                          2
-                        </a>
-                        <a
-                          href="#"
-                          class="
-                            bg-white
-                            border-gray-300
-                            text-gray-500
-                            hover:bg-gray-50
-                            hidden
-                            md:inline-flex
-                            relative
-                            items-center
-                            px-4
-                            py-2
-                            border
-                            text-sm
-                            font-medium
-                          "
-                        >
-                          3
-                        </a>
-                        <span
-                          class="
-                            relative
-                            inline-flex
-                            items-center
-                            px-4
-                            py-2
-                            border border-gray-300
-                            bg-white
-                            text-sm
-                            font-medium
-                            text-gray-700
-                          "
-                        >
-                          ...
-                        </span>
-                        <a
-                          href="#"
-                          class="
-                            bg-white
-                            border-gray-300
-                            text-gray-500
-                            hover:bg-gray-50
-                            hidden
-                            md:inline-flex
-                            relative
-                            items-center
-                            px-4
-                            py-2
-                            border
-                            text-sm
-                            font-medium
-                          "
-                        >
-                          8
-                        </a>
-                        <a
-                          href="#"
-                          class="
-                            bg-white
-                            border-gray-300
-                            text-gray-500
-                            hover:bg-gray-50
-                            relative
-                            inline-flex
-                            items-center
-                            px-4
-                            py-2
-                            border
-                            text-sm
-                            font-medium
-                          "
-                        >
-                          9
-                        </a>
-                        <a
-                          href="#"
-                          class="
-                            bg-white
-                            border-gray-300
-                            text-gray-500
-                            hover:bg-gray-50
-                            relative
-                            inline-flex
-                            items-center
-                            px-4
-                            py-2
-                            border
-                            text-sm
-                            font-medium
-                          "
-                        >
-                          10
-                        </a>
-                        <a
-                          href="#"
+                          @click="nextPage"
+                          href="javascript:;"
                           class="
                             relative
                             inline-flex
@@ -789,10 +661,10 @@
                             text-sm
                             font-medium
                             text-gray-500
-                            hover:bg-gray-50
+                            hover:bg-blue-50
                           "
                         >
-                          <span class="sr-only">Next</span>
+                          <span class="text-xs">Siguiente</span>
                           <!-- Heroicon name: solid/chevron-right -->
                           <svg
                             class="h-5 w-5"
@@ -822,7 +694,7 @@
 </template>
 
 <script>
-  import { computed, onMounted } from "@vue/runtime-core";
+  import { computed, onMounted, ref } from "@vue/runtime-core";
   import { useStore } from "vuex";
 
   export default {
@@ -830,12 +702,30 @@
     setup() {
       const store = useStore();
       const Users = computed(() => store.state.users.Users);
+      const pagesToken = [];
+
+      const params = {
+        pageSize: 5,
+        orderBy: "createTime",
+      };
 
       onMounted(async () => {
-        await store.dispatch("users/listUsers");
+        await store.dispatch("users/listUsers", params);
       });
 
-      return { Users };
+      const nextPage = async () => {
+        let nextPageToken = computed(() => store.state.users.nextPageToken).value;
+        params.pageToken = nextPageToken;
+        pagesToken.push(nextPageToken);
+        await store.dispatch("users/listUsers", params);
+      };
+
+      const previousPage = async () => {
+        params.pageToken = pagesToken.pop();
+        await store.dispatch("users/listUsers", params);
+      };
+
+      return { Users, nextPage, previousPage, pagesToken };
     },
   };
 </script>
