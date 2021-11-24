@@ -1,5 +1,4 @@
-const basePath =
-  "https://firestore.googleapis.com/v1/projects/control-security-f8c2c/databases/(default)/documents/";
+const basePath = 'https://firestore.googleapis.com/v1/';
 
 export default {
   namespaced: true,
@@ -21,24 +20,59 @@ export default {
   },
   actions: {
     listUsers: async ({ commit }, params = null) => {
-      let collectionID = "Users";
-      let url = basePath + collectionID;
+      let parent =
+        'projects/smartaxessqr/databases/(default)/documents:runQuery';
+      let collectionId = 'Users';
+      let url = basePath + parent;
 
-      if (params) {
+      /* if (params) {
         Object.entries(params).forEach((item, index) => {
           url += item[1]
             ? index == 0
-              ? "?" + item[0] + "=" + item[1]
-              : "&" + item[0] + "=" + item[1]
-            : "";
+              ? '?' + item[0] + '=' + item[1]
+              : '&' + item[0] + '=' + item[1]
+            : '';
         });
+      } */
+
+      const structuredQuery = {
+        from: [{ collectionId: collectionId }],
+        where: {
+          compositeFilter: {
+            filters: [
+              {
+                fieldFilter: {
+                  field: {
+                    fieldPath: 'type',
+                  },
+                  op: 'EQUAL',
+                  value: {
+                    stringValue: 'NUIP',
+                  },
+                },
+              },
+            ],
+            op: 'AND',
+          },
+        },
+        orderBy: [
+          { field: { fieldPath: 'createTime' }, direction: 'DESCENDING' },
+        ],
+        limit: params.pageSize,
+      };
+
+      if (params.pageToken) {
+        structuredQuery.startAt = {
+          values: [{ integerValue: params.pageToken }],
+        };
       }
 
       const res = await fetch(url, {
-        method: "get",
+        method: 'post',
         headers: {
-          "content-type": "application/json",
+          'content-type': 'application/json',
         },
+        body: JSON.stringify({ structuredQuery }),
       });
 
       if (!res.ok) {
@@ -49,21 +83,24 @@ export default {
       } else {
         const json = await res.json();
 
-        commit(
-          "setUsers",
-          json.documents.map((doc) =>
-            Object.fromEntries(
-              Object.entries(doc.fields).map((item) => [
-                item[0],
-                Object.values(item[1])[0],
-              ])
-            )
+        console.log(json);
+
+        const List = json.map((doc) =>
+          Object.fromEntries(
+            Object.entries(doc.document.fields).map((item) => [
+              item[0],
+              Object.values(item[1])[0],
+            ])
           )
         );
 
+        commit('setUsers', List);
+
+        console.log(List[List.length - 1].createTime);
+
         commit(
-          "setNextPageToken",
-          json.nextPageToken ? json.nextPageToken : null
+          'setNextPageToken',
+          List.length ? List[List.length - 1].createTime : null
         );
       }
     },

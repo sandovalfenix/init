@@ -156,7 +156,7 @@
 
     <DisclosurePanel class="md:hidden">
       <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-        <DisclosureButton
+        <router-link
           v-for="item in navigation"
           :key="item.name"
           as="a"
@@ -168,7 +168,7 @@
             'block px-3 py-2 rounded-md text-base font-medium',
           ]"
           :aria-current="item.current ? 'page' : undefined"
-          >{{ item.name }}</DisclosureButton
+          >{{ item.name }}</router-link
         >
       </div>
       <div class="pt-4 pb-3 border-t border-gray-700">
@@ -246,7 +246,39 @@
   </Disclosure>
 </template>
 <script>
-  import {
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
+} from '@headlessui/vue';
+import { BellIcon, MenuIcon, XIcon, HomeIcon } from '@heroicons/vue/outline';
+
+const user = {
+  name: 'Tom Cook',
+  email: 'tom@example.com',
+  imageUrl:
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+};
+
+const navigation = [
+  { current: true, name: 'Dashboard', href: '/' },
+  { current: false, name: 'Entidades', href: '' },
+  { current: false, name: 'Empleados', href: '' },
+  { current: false, name: 'Estudiantes', href: '/students' },
+  { current: false, name: 'Historial', href: '' },
+];
+const userNavigation = [
+  { name: 'Perfil', href: '#' },
+  { name: 'Configuracion', href: '#' },
+];
+
+export default {
+  name: 'SiberNav',
+  components: {
     Disclosure,
     DisclosureButton,
     DisclosurePanel,
@@ -254,49 +286,17 @@
     MenuButton,
     MenuItem,
     MenuItems,
-  } from "@headlessui/vue";
-  import { BellIcon, MenuIcon, XIcon, HomeIcon } from "@heroicons/vue/outline";
-
-  const user = {
-    name: "Tom Cook",
-    email: "tom@example.com",
-    imageUrl:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-  };
-
-  const navigation = [
-    { current: true, name: "Dashboard", href: "/" },
-    { current: false, name: "Entidades", href: "" },
-    { current: false, name: "Empleados", href: "" },
-    { current: false, name: "Estudiantes", href: "/students" },
-    { current: false, name: "Historial", href: "" },
-  ];
-  const userNavigation = [
-    { name: "Perfil", href: "#" },
-    { name: "Configuracion", href: "#" },
-  ];
-
-  export default {
-    name: "SiberNav",
-    components: {
-      Disclosure,
-      DisclosureButton,
-      DisclosurePanel,
-      Menu,
-      MenuButton,
-      MenuItem,
-      MenuItems,
-      BellIcon,
-      MenuIcon,
-      XIcon,
-      HomeIcon,
-    },
-    setup() {
-      return {
-        user,
-        navigation,
-        userNavigation,
-      };
-    },
-  };
+    BellIcon,
+    MenuIcon,
+    XIcon,
+    HomeIcon,
+  },
+  setup() {
+    return {
+      user,
+      navigation,
+      userNavigation,
+    };
+  },
+};
 </script>
