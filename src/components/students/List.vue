@@ -609,12 +609,27 @@ export default {
   setup() {
     const store = useStore();
     const Users = computed(() => store.state.users.Users);
-    const pagesToken = [];
 
     const params = {
-      pageSize: 15,
-      orderBy: 'createTime',
+      limit: 15,
+      filters: {
+        fieldFilter: {
+          field: {
+            fieldPath: 'type',
+          },
+          op: 'EQUAL',
+          value: {
+            stringValue: 'NUIP',
+          },
+        },
+      },
+      orderBy: {
+        field: { fieldPath: 'createTime' },
+        direction: 'DESCENDING',
+      },
     };
+
+    const pagesToken = [];
 
     onMounted(async () => {
       await store.dispatch('users/listUsers', params);

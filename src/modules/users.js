@@ -1,4 +1,6 @@
 const basePath = 'https://firestore.googleapis.com/v1/';
+let parent = 'projects/smartaxessqr/databases/(default)/documents';
+let collectionId = 'Users';
 
 export default {
   namespaced: true,
@@ -20,9 +22,6 @@ export default {
   },
   actions: {
     listUsers: async ({ commit }, params = null) => {
-      let parent =
-        'projects/smartaxessqr/databases/(default)/documents:runQuery';
-      let collectionId = 'Users';
       let url = basePath + parent;
 
       /* if (params) {
@@ -39,26 +38,12 @@ export default {
         from: [{ collectionId: collectionId }],
         where: {
           compositeFilter: {
-            filters: [
-              {
-                fieldFilter: {
-                  field: {
-                    fieldPath: 'type',
-                  },
-                  op: 'EQUAL',
-                  value: {
-                    stringValue: 'NUIP',
-                  },
-                },
-              },
-            ],
+            filters: [params.filters],
             op: 'AND',
           },
         },
-        orderBy: [
-          { field: { fieldPath: 'createTime' }, direction: 'DESCENDING' },
-        ],
-        limit: params.pageSize,
+        orderBy: [params.orderBy],
+        limit: params.limit,
       };
 
       if (params.pageToken) {
@@ -67,7 +52,7 @@ export default {
         };
       }
 
-      const res = await fetch(url, {
+      const res = await fetch(url + ':runQuery', {
         method: 'post',
         headers: {
           'content-type': 'application/json',
@@ -83,7 +68,7 @@ export default {
       } else {
         const json = await res.json();
 
-        console.log(json);
+        //console.log(json);
 
         const List = json.map((doc) =>
           Object.fromEntries(
@@ -96,12 +81,32 @@ export default {
 
         commit('setUsers', List);
 
-        console.log(List[List.length - 1].createTime);
-
         commit(
           'setNextPageToken',
           List.length ? List[List.length - 1].createTime : null
         );
+      }
+    },
+    createUser: async ({ commit }, document = null) => {
+      let url = basePath + parente + collectionId;
+
+      const res = await fetch(url, {
+        method: 'post',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ document }),
+      });
+
+      if (!res.ok) {
+        // create error instance with HTTP status text
+        const error = new Error(res.statusText);
+        error.json = res.json();
+        throw error;
+      } else {
+        const json = await res.json();
+
+        console.log(json);
       }
     },
   },
